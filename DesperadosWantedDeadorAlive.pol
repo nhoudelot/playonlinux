@@ -1,0 +1,73 @@
+#!/usr/bin/env playonlinux-bash
+# Date : (2016-08-03 11-00)
+# Last revision : (2016-08-03)
+# Wine version used : 1.8.3
+# Distribution used to test : Mint 18
+# Author : Nicolas HOUDELOT
+# Licence : Retail
+#
+# Changelog
+# (2016-08-06) - Nicolas HOUDELOT
+# - first release
+
+[ "$PLAYONLINUX" = "" ] && exit 0
+source "$PLAYONLINUX/lib/sources"
+ 
+TITLE="Desperados: Wanted Dead or Alive"
+PREFIX="DesperadosWantedDeadorAlive"
+WINE_VERSION="1.8.3"
+GAME_VMS=64
+
+LNG_INSTALL_ON="$(eval_gettext 'Installation in progress...')"
+LNG_SUCCES="$(eval_gettext '$TITLE has been installed successfully.')"
+
+POL_GetSetupImages "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/Desperados_box_cover_design.jpg/64px-Desperados_box_cover_design.jpg" "https://upload.wikimedia.org/wikipedia/en/thumb/a/a2/Desperados_box_cover_design.jpg/150px-Desperados_box_cover_design.jpg"  "$TITLE"
+#starting the script
+POL_SetupWindow_Init
+POL_SetupWindow_presentation "$TITLE" "Nordic Games" "http://store.steampowered.com/app/260730" "Nicolas HOUDELOT" "$PREFIX" 
+
+POL_System_SetArch "x86"
+POL_Wine_SelectPrefix "$PREFIX"
+POL_Wine_PrefixCreate "$WINE_VERSION"
+
+#Configuration de wine
+Set_OS "winxp"
+Set_Desktop "On" "1024" "768"
+#asking about memory size of graphic card
+POL_SetupWindow_VMS $GAME_VMS
+# Set Graphic Card information keys for wine
+POL_Wine_SetVideoDriver
+# Sound problem fix - pulseaudio related
+[ "$POL_OS" = "Linux" ] && Set_SoundDriver "alsa"
+[ "$POL_OS" = "Linux" ] && Set_SoundEmulDriver "Y"
+## End Fix
+
+## PlayOnMac Section
+[ "$POL_OS" = "Mac" ] && Set_Managed "Off"
+## End Section
+
+## Backup registry
+#cp "$WINEPREFIX/system.reg" "$WINEPREFIX/system.reg.old"
+#cp "$WINEPREFIX/user.reg" "$WINEPREFIX/user.reg.old"
+#cp "$WINEPREFIX/userdef.reg" "$WINEPREFIX/userdef.reg.old"
+
+## Installer ##
+#asking for CDROM and checking if it's correct one
+POL_SetupWindow_cdrom
+POL_SetupWindow_check_cdrom "Desperados.exe"
+POL_Wine start /unix "$CDROM/Desperados.exe"
+POL_Wine_WaitExit "$TITLE"
+
+
+# Cleaning temp
+if [ -e "$WINEPREFIX/drive_c/windows/temp/" ]; then
+        rm -rf "$WINEPREFIX/drive_c/windows/temp/*"
+        chmod -R 777 "$POL_USER_ROOT/tmp/"
+        rm -rf "$POL_USER_ROOT/tmp/*"
+fi
+
+#making shortcut
+POL_Shortcut "Desperados.exe" "$TITLE" "" "" "" "Game;Adventure;"
+POL_SetupWindow_message "$LNG_SUCCES" "$TITLE"
+POL_SetupWindow_Close
+exit 0
